@@ -1,0 +1,4 @@
+Backend Developer (Intern) assignment brief moved from root.
+
+This file is intentionally kept under `docs/` so Vercel does not
+mis-detect the project as Python based on a root `requirements.txt`.
