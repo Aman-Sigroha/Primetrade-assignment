@@ -7,6 +7,90 @@
   },
   "item": [
     {
+      "name": "Auth - Request OTP",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json?.data?.devOtp) {",
+              "  pm.collectionVariables.set('otp', json.data.devOtp);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"aman@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/request-otp",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "request-otp"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Auth - Verify OTP",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json?.data?.verificationToken) {",
+              "  pm.collectionVariables.set('verificationToken', json.data.verificationToken);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"aman@example.com\",\n  \"otp\": \"{{otp}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/auth/verify-otp",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "verify-otp"
+          ]
+        }
+      }
+    },
+    {
       "name": "Auth - Register",
       "request": {
         "method": "POST",
@@ -18,7 +102,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"name\": \"Aman\",\n  \"email\": \"aman@example.com\",\n  \"password\": \"password123\"\n}"
+          "raw": "{\n  \"name\": \"Aman\",\n  \"email\": \"aman@example.com\",\n  \"password\": \"password123\",\n  \"verificationToken\": \"{{verificationToken}}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/api/v1/auth/register",
@@ -222,6 +306,14 @@
     },
     {
       "key": "taskId",
+      "value": ""
+    },
+    {
+      "key": "verificationToken",
+      "value": ""
+    },
+    {
+      "key": "otp",
       "value": ""
     }
   ]

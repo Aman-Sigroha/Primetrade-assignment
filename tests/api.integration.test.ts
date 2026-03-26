@@ -4,6 +4,8 @@ import { MongoMemoryServer } from "mongodb-memory-server";
 import { disconnectDB, connectDB } from "@/lib/db";
 import { POST as register } from "@/app/api/v1/auth/register/route";
 import { POST as login } from "@/app/api/v1/auth/login/route";
+import { POST as requestOtp } from "@/app/api/v1/auth/request-otp/route";
+import { POST as verifyOtp } from "@/app/api/v1/auth/verify-otp/route";
 import { GET as tasksGet, POST as tasksPost } from "@/app/api/v1/tasks/route";
 import {
   GET as taskByIdGet,
@@ -11,7 +13,7 @@ import {
   DELETE as taskByIdDelete,
 } from "@/app/api/v1/tasks/[id]/route";
 import { User } from "@/models/User";
-import { generateToken } from "@/lib/auth";
+import { generateEmailVerificationToken, generateToken } from "@/lib/auth";
 
 let mongo: MongoMemoryServer;
 
@@ -53,7 +55,36 @@ function jsonReq(
 }
 
 async function registerUser(payload: { name: string; email: string; password: string }) {
-  const res = await register(jsonReq("/api/v1/auth/register", { method: "POST", body: payload }));
+  const otpReq = await requestOtp(
+    jsonReq("/api/v1/auth/request-otp", { method: "POST", body: { email: payload.email } })
+  );
+  const otpReqData = (await otpReq.json()) as { success: boolean; data?: { devOtp?: string } };
+  expect(otpReq.status).toBe(200);
+  expect(otpReqData.success).toBe(true);
+  const otp = otpReqData.data?.devOtp;
+  expect(otp).toBeDefined();
+
+  const otpVerify = await verifyOtp(
+    jsonReq("/api/v1/auth/verify-otp", {
+      method: "POST",
+      body: { email: payload.email, otp },
+    })
+  );
+  const otpVerifyData = (await otpVerify.json()) as {
+    success: boolean;
+    data?: { verificationToken?: string };
+  };
+  expect(otpVerify.status).toBe(200);
+  expect(otpVerifyData.success).toBe(true);
+  const verificationToken = otpVerifyData.data?.verificationToken;
+  expect(verificationToken).toBeDefined();
+
+  const res = await register(
+    jsonReq("/api/v1/auth/register", {
+      method: "POST",
+      body: { ...payload, verificationToken },
+    })
+  );
   const data = (await res.json()) as {
     success: boolean;
     data?: { token: string; user: { id: string; role: string } };
@@ -76,11 +107,18 @@ describe("auth APIs", () => {
 
   it("returns 409 on duplicate email", async () => {
     await registerUser({ name: "A", email: "dup@example.com", password: "password123" });
-    const { res, data } = await registerUser({
-      name: "B",
-      email: "dup@example.com",
-      password: "password123",
-    });
+    const res = await register(
+      jsonReq("/api/v1/auth/register", {
+        method: "POST",
+        body: {
+          name: "B",
+          email: "dup@example.com",
+          password: "password123",
+          verificationToken: generateEmailVerificationToken("dup@example.com"),
+        },
+      })
+    );
+    const data = (await res.json()) as { success: boolean };
     expect(res.status).toBe(409);
     expect(data.success).toBe(false);
   });

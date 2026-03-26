@@ -12,7 +12,7 @@ Full-stack demo: **versioned REST API** (`/api/v1`) with **JWT authentication**,
 
 ## Features
 
-- **Auth:** `POST /api/v1/auth/register`, `POST /api/v1/auth/login` — passwords hashed with bcrypt (cost 12); JWT access tokens (1 day), signed with `JWT_SECRET` (minimum 32 characters).
+- **Auth:** OTP-based email verification (`request-otp` + `verify-otp`) before `register`, plus `login` with bcrypt-hashed passwords and JWT access tokens (1 day).
 - **Tasks CRUD:** `POST/GET /api/v1/tasks`, `GET/PUT/DELETE /api/v1/tasks/:id` — bearer token required.
 - **RBAC:** Regular users only see and mutate their own tasks. Admins can list all tasks (optional `?userId=` filter) and act on any task.
 - **Consistency:** Responses use `{ success, message, data?, error? }` with appropriate HTTP status codes.
@@ -56,7 +56,7 @@ Full-stack demo: **versioned REST API** (`/api/v1`) with **JWT authentication**,
    npm run dev
    ```
 
-2. Open [http://localhost:3000/register](http://localhost:3000/register), create a user, then log in.
+2. Open [http://localhost:3000/register](http://localhost:3000/register), send OTP, verify OTP, then create a user.
 3. Open [http://localhost:3000/dashboard](http://localhost:3000/dashboard) and:
    - create a task
    - refresh and confirm it persists
@@ -86,6 +86,8 @@ Full-stack demo: **versioned REST API** (`/api/v1`) with **JWT authentication**,
 | Method | Path                     | Auth   | Notes                                      |
 | ------ | ------------------------ | ------ | ------------------------------------------ |
 | POST   | `/api/v1/auth/register`  | —      | Body: `name`, `email`, `password`          |
+| POST   | `/api/v1/auth/request-otp` | —    | Sends OTP to email (or returns dev OTP)    |
+| POST   | `/api/v1/auth/verify-otp`  | —    | Verifies OTP and returns verification token|
 | POST   | `/api/v1/auth/login`     | —      | Body: `email`, `password`                  |
 | POST   | `/api/v1/tasks`          | Bearer | Create task                                |
 | GET    | `/api/v1/tasks`          | Bearer | User: own tasks; admin: all (`?userId=` ok)|

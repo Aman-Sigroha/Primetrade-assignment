@@ -7,6 +7,11 @@ export interface AccessTokenPayload {
   role: UserRole;
 }
 
+export interface EmailVerificationPayload {
+  email: string;
+  purpose: "email_verification";
+}
+
 function getSecret(): string {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) {
@@ -35,4 +40,23 @@ export function verifyToken(token: string): AccessTokenPayload {
     throw new jwt.JsonWebTokenError("Invalid role");
   }
   return { userId: decoded.userId, role: decoded.role };
+}
+
+export function generateEmailVerificationToken(email: string): string {
+  return jwt.sign({ email, purpose: "email_verification" }, getSecret(), {
+    expiresIn: "10m",
+    issuer: "primetrade-api",
+    audience: "primetrade-clients",
+  });
+}
+
+export function verifyEmailVerificationToken(token: string): EmailVerificationPayload {
+  const decoded = jwt.verify(token, getSecret(), {
+    issuer: "primetrade-api",
+    audience: "primetrade-clients",
+  }) as jwt.JwtPayload & Partial<EmailVerificationPayload>;
+  if (!decoded.email || decoded.purpose !== "email_verification") {
+    throw new jwt.JsonWebTokenError("Invalid verification token");
+  }
+  return { email: decoded.email, purpose: "email_verification" };
 }

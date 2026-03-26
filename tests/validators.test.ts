@@ -8,6 +8,7 @@ describe("auth validators", () => {
       name: "  Jane  ",
       email: " Jane@Example.COM ",
       password: "password123",
+      verificationToken: "verification-token-example",
     });
     expect(parsed.success).toBe(true);
     if (parsed.success) {
@@ -21,6 +22,7 @@ describe("auth validators", () => {
       name: "Jane",
       email: "jane@example.com",
       password: "short",
+      verificationToken: "verification-token-example",
     });
     expect(parsed.success).toBe(false);
   });
@@ -30,6 +32,7 @@ describe("auth validators", () => {
       name: "Jane",
       email: "jane@example.com",
       password: "password123",
+      verificationToken: "verification-token-example",
       extra: "nope",
     } as unknown);
     expect(parsed.success).toBe(false);

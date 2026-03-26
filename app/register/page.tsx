@@ -10,15 +10,68 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [verificationToken, setVerificationToken] = useState<string | null>(null);
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function requestOtp() {
     setMessage(null);
     setLoading(true);
     try {
-      const { data } = await api.post("/api/v1/auth/register", { name, email, password });
+      const { data } = await api.post("/api/v1/auth/request-otp", { email });
+      if (data.success) {
+        setOtpRequested(true);
+        setVerificationToken(null);
+        setDevOtp(data.data?.devOtp ?? null);
+        setMessage({ type: "ok", text: data.message ?? "OTP sent" });
+      } else {
+        setMessage({ type: "err", text: data.message ?? "Could not send OTP" });
+      }
+    } catch (err: unknown) {
+      const ax = err as { response?: { data?: { message?: string } } };
+      setMessage({ type: "err", text: ax.response?.data?.message ?? "Request failed" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function verifyOtp() {
+    setMessage(null);
+    setLoading(true);
+    try {
+      const { data } = await api.post("/api/v1/auth/verify-otp", { email, otp });
+      if (data.success && data.data?.verificationToken) {
+        setVerificationToken(data.data.verificationToken);
+        setMessage({ type: "ok", text: data.message ?? "Email verified" });
+      } else {
+        setMessage({ type: "err", text: data.message ?? "OTP verification failed" });
+      }
+    } catch (err: unknown) {
+      const ax = err as { response?: { data?: { message?: string } } };
+      setMessage({ type: "err", text: ax.response?.data?.message ?? "OTP verification failed" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!verificationToken) {
+      setMessage({ type: "err", text: "Please verify your email with OTP first" });
+      return;
+    }
+    setMessage(null);
+    setLoading(true);
+    try {
+      const { data } = await api.post("/api/v1/auth/register", {
+        name,
+        email,
+        password,
+        verificationToken,
+      });
       if (data.success && data.data?.token) {
         localStorage.setItem("primetrade_token", data.data.token);
         setAuthToken(data.data.token);
@@ -91,16 +144,61 @@ export default function RegisterPage() {
                   <label className="pt-label" htmlFor="reg-email">
                     Email
                   </label>
-                  <input
-                    id="reg-email"
-                    type="email"
-                    className="pt-input mt-1.5"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    autoComplete="email"
-                  />
+                  <div className="mt-1.5 flex gap-2">
+                    <input
+                      id="reg-email"
+                      type="email"
+                      className="pt-input"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void requestOtp()}
+                      disabled={loading || !email}
+                      className="pt-btn-secondary whitespace-nowrap px-3"
+                    >
+                      {loading ? "Sending..." : "Send OTP"}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-xs text-ink-500">Send and verify OTP before registering.</p>
                 </div>
+                {otpRequested ? (
+                  <div>
+                    <label className="pt-label" htmlFor="reg-otp">
+                      OTP
+                    </label>
+                    <div className="mt-1.5 flex gap-2">
+                      <input
+                        id="reg-otp"
+                        className="pt-input"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        placeholder="6-digit code"
+                        inputMode="numeric"
+                        maxLength={6}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void verifyOtp()}
+                        disabled={loading || otp.length !== 6}
+                        className="pt-btn-secondary whitespace-nowrap px-3"
+                      >
+                        Verify OTP
+                      </button>
+                    </div>
+                    {devOtp ? (
+                      <p className="mt-1.5 text-xs text-amber-700">
+                        Dev mode OTP: <span className="font-semibold">{devOtp}</span>
+                      </p>
+                    ) : null}
+                    {verificationToken ? (
+                      <p className="mt-1.5 text-xs font-semibold text-emerald-700">Email verified ✓</p>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div>
                   <label className="pt-label" htmlFor="reg-password">
                     Password
@@ -122,7 +220,11 @@ export default function RegisterPage() {
                     {message.text}
                   </p>
                 ) : null}
-                <button type="submit" disabled={loading} className="pt-btn-primary w-full py-3">
+                <button
+                  type="submit"
+                  disabled={loading || !verificationToken}
+                  className="pt-btn-primary w-full py-3"
+                >
                   {loading ? "Creating account…" : "Register"}
                 </button>
               </form>
