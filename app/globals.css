@@ -3,21 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f8faf9;
+  --foreground: #0f1419;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer components {
+  .pt-input {
+    @apply w-full rounded-xl border border-ink-200/90 bg-white px-4 py-2.5 text-ink-900 shadow-sm outline-none transition;
+    @apply placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-200/60;
+  }
+  .pt-label {
+    @apply block text-sm font-medium text-ink-600;
+  }
+  .pt-btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition;
+    @apply hover:bg-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+  }
+  .pt-btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-ink-200 bg-white px-5 py-2.5 text-sm font-semibold text-ink-800 shadow-sm transition;
+    @apply hover:border-ink-300 hover:bg-ink-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink-400;
+  }
+  .pt-card {
+    @apply rounded-2xl border border-ink-100/80 bg-white/90 shadow-card backdrop-blur-sm;
+  }
+  .pt-alert-ok {
+    @apply rounded-xl border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900;
+  }
+  .pt-alert-err {
+    @apply rounded-xl border border-red-200/80 bg-red-50/90 px-4 py-3 text-sm text-red-900;
+  }
 }
 
 @layer utilities {

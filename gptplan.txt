@@ -1,0 +1,415 @@
+Alright — this is a **perfect “Cursor-buildable” assignment** if you structure it right. I’ll give you a **step-by-step execution plan + exact prompts** you can paste into Cursor so it basically builds everything for you.
+
+We’ll keep it:
+
+* ✅ Clean
+* ✅ Scalable (they care about this)
+* ✅ Fast (you have limited time)
+
+---
+
+# 🚀 TECH STACK (Use THIS — optimal for selection)
+
+### Backend
+
+* Next.js API Routes (App Router)
+* MongoDB + Mongoose (fast to set up)
+* JWT (jsonwebtoken)
+* bcrypt (password hashing)
+* Zod (validation)
+* Swagger (optional but bonus)
+
+### Frontend
+
+* Next.js (same project)
+* Tailwind CSS
+* Axios
+
+---
+
+# 🧠 PROJECT STRUCTURE (VERY IMPORTANT — scoring point)
+
+```
+/app
+  /api
+    /v1
+      /auth
+        register/route.ts
+        login/route.ts
+      /tasks
+        route.ts
+        [id]/route.ts
+
+/lib
+  db.ts
+  auth.ts
+  middleware.ts
+
+/models
+  User.ts
+  Task.ts
+
+/validators
+  auth.validator.ts
+  task.validator.ts
+
+/utils
+  response.ts
+
+/middleware.ts
+
+/app (frontend)
+  /login
+  /register
+  /dashboard
+```
+
+---
+
+# 🧩 STEP-BY-STEP PLAN (Put in Cursor one by one)
+
+---
+
+## 🟢 STEP 1 — Create Next.js project
+
+👉 Paste in Cursor:
+
+```
+Create a new Next.js 14 project using App Router with TypeScript and Tailwind CSS enabled.
+
+Project name: backend-assignment
+
+Install dependencies:
+- mongoose
+- jsonwebtoken
+- bcryptjs
+- zod
+- axios
+- swagger-ui-react
+- yaml
+
+Set up folder structure for scalable backend:
+- app/api/v1/auth
+- app/api/v1/tasks
+- lib
+- models
+- validators
+- utils
+```
+
+---
+
+## 🟢 STEP 2 — Database Setup
+
+👉 Prompt:
+
+```
+Create MongoDB connection utility using mongoose.
+
+File: lib/db.ts
+
+Requirements:
+- Use global caching to prevent multiple connections
+- Export a connectDB function
+- Handle errors properly
+```
+
+---
+
+## 🟢 STEP 3 — User Model
+
+👉 Prompt:
+
+```
+Create a Mongoose User model.
+
+Fields:
+- name (string)
+- email (unique, required)
+- password (hashed)
+- role (enum: 'user', 'admin', default 'user')
+- createdAt
+
+Add pre-save hook to hash password using bcrypt.
+```
+
+---
+
+## 🟢 STEP 4 — Task Model (CRUD Entity)
+
+👉 Prompt:
+
+```
+Create a Task model.
+
+Fields:
+- title (string)
+- description (string)
+- userId (reference to User)
+- createdAt
+
+Ensure proper indexing for scalability.
+```
+
+---
+
+## 🟢 STEP 5 — Auth Utilities (JWT)
+
+👉 Prompt:
+
+```
+Create JWT utility functions.
+
+File: lib/auth.ts
+
+Functions:
+- generateToken(userId, role)
+- verifyToken(token)
+
+Use environment variable JWT_SECRET.
+
+Token should expire in 1 day.
+```
+
+---
+
+## 🟢 STEP 6 — Validation (Zod)
+
+👉 Prompt:
+
+```
+Create Zod validators.
+
+auth.validator.ts:
+- register schema (name, email, password)
+- login schema (email, password)
+
+task.validator.ts:
+- title required
+- description optional
+```
+
+---
+
+## 🟢 STEP 7 — Register API
+
+👉 Prompt:
+
+```
+Create POST /api/v1/auth/register
+
+Features:
+- Validate input using Zod
+- Hash password
+- Save user in DB
+- Return JWT token
+
+Error handling:
+- Duplicate email
+- Validation errors
+
+Return proper status codes.
+```
+
+---
+
+## 🟢 STEP 8 — Login API
+
+👉 Prompt:
+
+```
+Create POST /api/v1/auth/login
+
+Features:
+- Validate input
+- Check user exists
+- Compare password
+- Return JWT token
+
+Handle wrong credentials securely.
+```
+
+---
+
+## 🟢 STEP 9 — Auth Middleware
+
+👉 Prompt:
+
+```
+Create middleware to protect routes.
+
+File: middleware.ts
+
+Features:
+- Extract JWT from headers
+- Verify token
+- Attach user info to request
+- Reject unauthorized users
+
+Also implement role-based access:
+- Allow only admin for certain routes
+```
+
+---
+
+## 🟢 STEP 10 — Task CRUD APIs
+
+👉 Prompt:
+
+```
+Create CRUD APIs for tasks.
+
+Routes:
+- POST /api/v1/tasks (create task)
+- GET /api/v1/tasks (get user tasks)
+- PUT /api/v1/tasks/:id
+- DELETE /api/v1/tasks/:id
+
+Features:
+- Require authentication
+- Only owner can modify/delete
+- Admin can access all tasks
+
+Use proper status codes and validation.
+```
+
+---
+
+## 🟢 STEP 11 — API Response Standardization
+
+👉 Prompt:
+
+```
+Create a utility for API responses.
+
+Format:
+{
+  success: boolean,
+  message: string,
+  data?: any,
+  error?: any
+}
+
+Use this in all APIs.
+```
+
+---
+
+## 🟢 STEP 12 — Frontend (Simple UI)
+
+👉 Prompt:
+
+```
+Create frontend pages:
+
+/register
+/login
+/dashboard
+
+Use Tailwind CSS.
+
+Features:
+- Register form
+- Login form
+- Store JWT in localStorage
+- Dashboard:
+  - Show tasks
+  - Create task
+  - Delete task
+
+Use Axios for API calls.
+```
+
+---
+
+## 🟢 STEP 13 — Protected Routes
+
+👉 Prompt:
+
+```
+Protect dashboard page:
+- Redirect to login if JWT not present
+- Attach JWT in headers for API calls
+```
+
+---
+
+## 🟢 STEP 14 — API Documentation (Swagger)
+
+👉 Prompt:
+
+```
+Add Swagger documentation.
+
+- Create swagger.yaml
+- Document all endpoints
+- Add Swagger UI page at /api-docs
+```
+
+---
+
+## 🟢 STEP 15 — README.md (VERY IMPORTANT FOR SELECTION)
+
+👉 Prompt:
+
+```
+Create a professional README.md including:
+
+- Project overview
+- Tech stack
+- Features
+- API endpoints
+- Setup instructions
+- Environment variables
+- Scalability notes:
+  - Modular structure
+  - JWT auth
+  - DB indexing
+  - Future improvements (Redis, microservices, load balancing)
+```
+
+---
+
+# ⚡ BONUS (DO THIS IF TIME LEFT)
+
+👉 Add:
+
+* Logging (morgan or custom)
+* Dockerfile
+* Rate limiting
+
+---
+
+# 🧠 WHAT THEY ACTUALLY CARE ABOUT (INSIDER TIP)
+
+Focus on:
+
+1. Clean folder structure ✅
+2. Proper status codes ✅
+3. JWT + role-based auth ✅
+4. Error handling ✅
+5. README quality ✅
+
+Frontend just needs to **work**, not look pretty.
+
+---
+
+# 🏁 FINAL STRATEGY (VERY IMPORTANT)
+
+Do this in order:
+
+1. Backend (80% time)
+2. Frontend (15%)
+3. README + polish (5%)
+
+---
+
+# 💬 If you want next step
+
+I can:
+
+* Give you **ready-made Cursor prompts chunk-by-chunk**
+* Or give you a **complete GitHub-ready codebase**
+* Or simulate **interview questions they’ll ask after this**
+
+Just tell me 👍
